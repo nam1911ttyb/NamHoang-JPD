@@ -145,6 +145,13 @@ td .wl span{display:inline-block;margin:0 10px 3px 0}
 td .wl small{color:var(--muted);font-family:"Be Vietnam Pro",sans-serif}
 .tablewrap{overflow-x:auto}
 .empty{text-align:center;color:var(--muted);padding:40px}
+.tin{width:100%;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:14px 16px;font-family:var(--jp);font-size:24px;text-align:center;outline:none}
+.tin:focus{border-color:var(--accent)}
+.tin.bad{border-color:var(--bad);background:var(--bad-soft)}
+.tin.good{border-color:var(--ok);background:var(--ok-soft)}
+.tmean{font-size:16px;color:var(--muted);margin-top:6px}
+.tbtns{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px;margin-top:12px}
+.note{font-size:13px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;line-height:1.6}
 @media (max-width:600px){
   .mhead{flex-direction:column;text-align:center}
   .rd{justify-content:center}
@@ -170,6 +177,7 @@ td .wl small{color:var(--muted);font-family:"Be Vietnam Pro",sans-serif}
       <button data-tab="browse" class="on">Tra cứu</button>
       <button data-tab="flash">Flashcard</button>
       <button data-tab="quiz">Trắc nghiệm</button>
+      <button data-tab="type">Luyện gõ</button>
       <button data-tab="table">Bảng tổng hợp</button>
     </nav>
   </div>
@@ -200,6 +208,10 @@ td .wl small{color:var(--muted);font-family:"Be Vietnam Pro",sans-serif}
         </div>
         <div id="fcArea"></div>
       </div>
+    </section>
+
+    <section id="tab-type">
+      <div class="qwrap" id="typeArea"></div>
     </section>
 
     <section id="tab-quiz">
@@ -530,7 +542,7 @@ let tab='browse';
 $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;
   document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id==='tab-'+tab));
-  if(tab==='flash')startFlash();if(tab==='quiz')quizSetup();};
+  if(tab==='flash')startFlash();if(tab==='quiz')quizSetup();if(tab==='type')typeSetup();};
 
 // ---------- lesson chips ----------
 function renderLessons(){
@@ -541,7 +553,7 @@ $('lessons').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v
   if(v==='all')sel=new Set(LESSONS);else if(v==='none')sel=new Set();else{const n=+v;sel.has(n)?sel.delete(n):sel.add(n)}
   store.set('kj_lessons',[...sel]);renderLessons();renderAll();};
 
-function renderAll(){renderBrowse();renderTable();if(tab==='flash')startFlash();if(tab==='quiz')quizSetup();}
+function renderAll(){renderBrowse();renderTable();if(tab==='flash')startFlash();if(tab==='quiz')quizSetup();if(tab==='type')typeSetup();}
 
 // ---------- browse ----------
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d');
@@ -696,6 +708,91 @@ function choose(i){const q=qs.list[qs.i];if(!q||q.done)return;q.done=true;
   $('qNext').style.visibility='visible';$('qNext').focus();}
 document.addEventListener('keydown',e=>{if(tab!=='quiz'||$('overlay').classList.contains('on'))return;const q=qs.list[qs.i];if(!q)return;
   if(!q.done&&/^[1-4]$/.test(e.key))choose(+e.key-1);else if(q.done&&e.key==='Enter'&&document.activeElement!==$('qNext')){qs.i++;drawQ()}});
+
+// ---------- typing practice ----------
+const ROMA=(()=>{const t={a:'あ',i:'い',u:'う',e:'え',o:'お'};
+  const rows={k:'かきくけこ',s:'さしすせそ',t:'たちつてと',n:'なにぬねの',h:'はひふへほ',m:'まみむめも',r:'らりるれろ',g:'がぎぐげご',z:'ざじずぜぞ',d:'だぢづでど',b:'ばびぶべぼ',p:'ぱぴぷぺぽ'};
+  for(const c in rows)'aiueo'.split('').forEach((v,j)=>t[c+v]=rows[c][j]);
+  Object.assign(t,{ya:'や',yu:'ゆ',yo:'よ',wa:'わ',wo:'を',shi:'し',chi:'ち',tsu:'つ',fu:'ふ',ji:'じ',ja:'じゃ',ju:'じゅ',jo:'じょ',je:'じぇ',
+    sha:'しゃ',shu:'しゅ',sho:'しょ',she:'しぇ',cha:'ちゃ',chu:'ちゅ',cho:'ちょ',che:'ちぇ',xtsu:'っ',xtu:'っ',ltu:'っ',xa:'ぁ',xi:'ぃ',xu:'ぅ',xe:'ぇ',xo:'ぉ',xya:'ゃ',xyu:'ゅ',xyo:'ょ','-':'ー'});
+  'k s t n h m r g z d b p j'.split(' ').forEach(c=>{const base=t[c+'i'];if(!base)return;['a','u','o'].forEach((v,j)=>t[c+'y'+v]=base+'ゃゅょ'[j])});
+  return t})();
+const ROMA_KEYS=Object.keys(ROMA);
+function romaToKana(s){let out='',i=0;const L=s.toLowerCase();
+  while(i<L.length){const c=L[i];
+    if(!/[a-z\-']/.test(c)){out+=s[i];i++;continue}
+    if(c===L[i+1]&&/[bcdfghjkmpqrstvwxz]/.test(c)){out+='っ';i++;continue}
+    if(c==='n'){const nx=L[i+1];
+      if(nx===undefined){out+='n';break}
+      if(nx==='n'||nx==="'"){out+='ん';i+=2;continue}
+      if(!/[aiueoy]/.test(nx)){out+='ん';i++;continue}}
+    let hit=false;for(const len of [4,3,2,1]){const k=L.substr(i,len);if(ROMA[k]){out+=ROMA[k];i+=len;hit=true;break}}
+    if(hit)continue;
+    const rest=L.slice(i);if(ROMA_KEYS.some(k=>k.startsWith(rest))){out+=s.slice(i);break}
+    if(c==="'"){i++;continue}
+    out+=s[i];i++;}
+  return out}
+const normA=s=>kata2hira(String(s)).replace(/[\s～〜~・.。、()（）]/g,'');
+let ty=store.get('kj_type',{mode:'k2h',n:20});
+let ts={list:[],i:0,score:0,wrong:[],state:'ask',tries:0};
+function typeSetup(){
+  ts={list:[],i:0,score:0,wrong:[],state:'ask',tries:0};
+  const ws=selW();
+  $('typeArea').innerHTML=`<div class="setup"><h4>Hướng luyện</h4><div class="row">
+   <label><input type="radio" name="tm" value="k2h" ${ty.mode==='k2h'?'checked':''}> Kanji → Hiragana (gõ cách đọc)</label>
+   <label><input type="radio" name="tm" value="h2k" ${ty.mode==='h2k'?'checked':''}> Hiragana → Kanji (gõ chữ Hán)</label>
+   <label><input type="radio" name="tm" value="mix" ${ty.mode==='mix'?'checked':''}> Trộn cả hai</label></div>
+  <h4>Số câu</h4><div class="row">${[10,20,30,0].map(n=>`<label><input type="radio" name="tn" value="${n}" ${ty.n===n?'checked':''}> ${n||'Tất cả'}</label>`).join('')}</div>
+  <div class="note">Gõ cách đọc: cứ gõ romaji (vd <b>daigaku</b>), trang tự đổi sang <span class="jp">だいがく</span>. Muốn gõ “ん” ở cuối từ thì gõ <b>nn</b> hoặc chỉ một <b>n</b> cũng được.<br>
+  Gõ chữ Hán: cần bàn phím tiếng Nhật (Microsoft IME). Trên Windows: Settings → Time &amp; language → Language &amp; region → Add a language → <b>Japanese</b>, rồi bấm <b>Win + Space</b> để chuyển bàn phím.</div>
+  <div class="count">Đang chọn ${[...sel].length} bài · ${ws.length} từ vựng</div>
+  <div><button class="btn pri" id="tStart">Bắt đầu</button></div></div>`;
+  $('tStart').onclick=()=>{ty.mode=(document.querySelector('#typeArea input[name=tm]:checked')||{}).value||'k2h';
+    ty.n=+(document.querySelector('#typeArea input[name=tn]:checked')||{value:20}).value;store.set('kj_type',ty);
+    if(!ws.length){const c=$('typeArea').querySelector('.count');c.textContent='Hãy chọn ít nhất một bài.';c.style.color='var(--bad)';return}
+    let items=shuffle(ws);if(ty.n)items=items.slice(0,ty.n);
+    ts.list=items.map(w=>({w,dir:ty.mode==='mix'?(Math.random()<.5?'k2h':'h2k'):ty.mode}));drawT();};
+}
+function drawT(){
+  const A=$('typeArea');
+  if(ts.i>=ts.list.length){const pct=Math.round(ts.score/ts.list.length*100);
+    A.innerHTML=`<div class="qcard done"><div class="big">${ts.score}/${ts.list.length}</div><p>${pct>=90?'Xuất sắc!':pct>=70?'Tốt lắm!':'Ôn lại các từ sai bên dưới nhé.'}</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn pri" id="tAgain">Luyện lại</button>${ts.wrong.length?'<button class="btn" id="tWrong">Chỉ luyện từ sai</button>':''}<button class="btn" id="tSet">Đổi cài đặt</button></div>
+    ${ts.wrong.length?`<div class="review"><h4 style="margin:12px 0 4px;color:var(--muted)">Từ sai (${ts.wrong.length})</h4>${ts.wrong.map(q=>`<div><span class="jp">${esc(q.w.w)}（${esc(q.w.r)}）</span> — ${esc(q.w.m)}${q.given?` <span style="color:var(--bad)" class="jp">· bạn gõ: ${esc(q.given)}</span>`:''}</div>`).join('')}</div>`:''}</div>`;
+    $('tAgain').onclick=()=>{ts.list=shuffle(ts.list).map(q=>({w:q.w,dir:q.dir}));ts.i=0;ts.score=0;ts.wrong=[];drawT()};
+    const tw=$('tWrong');if(tw)tw.onclick=()=>{ts.list=shuffle(ts.wrong).map(q=>({w:q.w,dir:q.dir}));ts.i=0;ts.score=0;ts.wrong=[];drawT()};
+    $('tSet').onclick=typeSetup;return}
+  const q=ts.list[ts.i],w=q.w,k2h=q.dir==='k2h';ts.state='ask';ts.tries=0;
+  A.innerHTML=`<div class="fcbar"><span>Câu ${ts.i+1} / ${ts.list.length}</span><span id="tScore">Đúng: ${ts.score}</span></div><div class="progress"><i style="width:${ts.i/ts.list.length*100}%"></i></div>
+  <div class="qcard"><div class="qtype">${k2h?'Gõ cách đọc (hiragana)':'Gõ bằng chữ Hán'} · Bài ${w.l}</div>
+  <div class="qprompt">${k2h?`<div class="pw">${esc(w.w)}</div>`:`<div class="pw" style="color:var(--accent)">${esc(w.r)}</div>`}<div class="tmean">${esc(w.m)}</div></div>
+  <input class="tin" id="tIn" autocomplete="off" autocapitalize="off" spellcheck="false" lang="ja" placeholder="${k2h?'Gõ romaji hoặc hiragana…':'Gõ chữ Hán (bật bàn phím tiếng Nhật)…'}">
+  <div class="qinfo" id="tInfo">Enter để kiểm tra</div>
+  <div class="tbtns"><button class="btn" id="tHint">Gợi ý</button><button class="btn" id="tSkip">Xem đáp án</button><button class="btn pri" id="tCheck">Kiểm tra</button></div></div>`;
+  const inp=$('tIn');let composing=false;
+  inp.addEventListener('compositionstart',()=>composing=true);
+  inp.addEventListener('compositionend',()=>{composing=false});
+  inp.addEventListener('input',()=>{if(!k2h||composing)return;if(/[a-zA-Z\-]/.test(inp.value)){const v=romaToKana(inp.value);if(v!==inp.value){inp.value=v}}inp.classList.remove('bad')});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&!composing){e.preventDefault();ts.state==='ask'?checkT():nextT()}});
+  $('tCheck').onclick=()=>ts.state==='ask'?checkT():nextT();
+  $('tSkip').onclick=()=>revealT(false,'');
+  $('tHint').onclick=()=>{const ans=k2h?w.r:w.w;ts.tries++;const n=Math.min(ans.length,ts.tries);$('tInfo').innerHTML=`Gợi ý: <span class="jp" style="font-size:18px">${esc(ans.slice(0,n))}${'＿'.repeat(Math.max(0,ans.length-n))}</span>`;q.hinted=true};
+  setTimeout(()=>inp.focus(),30);
+}
+function checkT(){const q=ts.list[ts.i],k2h=q.dir==='k2h',inp=$('tIn');let v=inp.value.trim();if(!v)return;
+  if(k2h){v=romaToKana(v.replace(/n$/i,'nn'));inp.value=v}
+  const ok=normA(v)===normA(k2h?q.w.r:q.w.w)||(!k2h&&W.some(o=>o!==q.w&&normA(o.r)===normA(q.w.r)&&normA(o.w)===normA(v)&&o.m===q.w.m));
+  if(ok)revealT(true,v);
+  else{q.misses=(q.misses||0)+1;q.given=v;inp.classList.add('bad');
+    if(q.misses>=2)revealT(false,v);else $('tInfo').innerHTML='<b style="color:var(--bad)">Chưa đúng</b>, thử lại một lần nữa (hoặc bấm Gợi ý).';}}
+function revealT(ok,given){const q=ts.list[ts.i];if(ts.state!=='ask')return;ts.state='done';
+  if(ok&&!q.misses){ts.score++}else if(!ok||q.misses){if(!ts.wrong.includes(q)){if(given)q.given=given;ts.wrong.push(q)}}
+  const inp=$('tIn');inp.readOnly=true;inp.classList.remove('bad');inp.classList.add(ok?'good':'bad');
+  $('tScore').textContent='Đúng: '+ts.score;
+  const parts=q.w.ks.map(c=>`${c} <b>${esc(byK[c].hv)}</b>`).join(' + ');
+  $('tInfo').innerHTML=(ok?'<b style="color:var(--ok)">Chính xác!</b> ':'<b style="color:var(--bad)">Đáp án:</b> ')+`<span class="jp" style="font-size:18px">${esc(q.w.w)}（${esc(q.w.r)}）</span><br><span style="font-size:13px">${parts}</span>`;
+  $('tCheck').textContent='Câu tiếp →';$('tHint').disabled=true;$('tSkip').disabled=true;$('tCheck').focus();}
+function nextT(){ts.i++;drawT()}
 
 renderLessons();renderAll();
 })();
