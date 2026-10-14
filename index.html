@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ôn tập Kanji</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f1e7; --paper:#fffdf8; --ink:#1f1b16; --muted:#6f665a; --line:#e3dacb;
+  --accent:#b8322a; --accent-soft:#f6e1dc; --ok:#2f7a4a; --ok-soft:#dcefe2; --bad:#b8322a; --bad-soft:#f6e1dc;
+  --shadow:0 1px 2px rgba(60,40,20,.06),0 4px 16px rgba(60,40,20,.06);
+  --jp-serif:"Noto Serif JP",serif; --jp:"Noto Sans JP",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17140f; --paper:#221e18; --ink:#efe8db; --muted:#a59a89; --line:#3a332a;
+  --accent:#e2675c; --accent-soft:#3d2320; --ok:#6cc08b; --ok-soft:#1f3527; --bad:#e2675c; --bad-soft:#3d2320;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);}}
+:root[data-theme="dark"]{
+  --bg:#17140f; --paper:#221e18; --ink:#efe8db; --muted:#a59a89; --line:#3a332a;
+  --accent:#e2675c; --accent-soft:#3d2320; --ok:#6cc08b; --ok-soft:#1f3527; --bad:#e2675c; --bad-soft:#3d2320;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:15px;line-height:1.5}
+.jp{font-family:var(--jp)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:12px;padding:12px 0}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+.stamp{width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:var(--jp-serif);font-size:20px}
+.spacer{flex:1}
+.iconbtn{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:0}
+nav.tabs button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav.tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.lessons{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:16px 0 4px}
+.lessons .lbl{color:var(--muted);font-size:13px;margin-right:4px}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.ghost{background:none;color:var(--muted)}
+main{padding:12px 0 60px}
+section{display:none}section.on{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+input[type=search]{flex:1;min-width:200px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:10px;padding:10px 14px;font:inherit}
+.count{color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.tile{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s,border-color .12s;position:relative}
+.tile:hover{transform:translateY(-2px);border-color:var(--accent)}
+.tile .k{font-family:var(--jp-serif);font-size:44px;line-height:1.15}
+.tile .hv{font-weight:700;font-size:13px;letter-spacing:.04em;color:var(--accent)}
+.tile .m{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .ls{position:absolute;top:6px;left:8px;font-size:10px;color:var(--muted)}
+.tile.known::after{content:"✓";position:absolute;top:5px;right:8px;color:var(--ok);font-size:12px;font-weight:700}
+h2.lesson{font-size:15px;margin:22px 0 10px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:10px}
+h2.lesson::after{content:"";flex:1;height:1px;background:var(--line)}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(20,15,10,.45);display:none;align-items:flex-start;justify-content:center;z-index:50;overflow-y:auto;padding:24px 12px}
+.overlay.on{display:flex}
+.modal{background:var(--paper);border-radius:16px;max-width:640px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.mhead{display:flex;gap:18px;padding:22px;border-bottom:1px solid var(--line);align-items:center}
+.mhead .big{font-family:var(--jp-serif);font-size:84px;line-height:1;min-width:96px;text-align:center}
+.mhead .hv{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.mhead .mean{font-size:16px;margin:2px 0 8px}
+.rd{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:14px}
+.rd b{color:var(--muted);font-weight:500}
+.rd span{font-family:var(--jp)}
+.mbody{padding:16px 22px 22px}
+.mbody h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:10px 0 8px}
+.words{display:flex;flex-direction:column;gap:6px}
+.word{display:grid;grid-template-columns:minmax(110px,auto) 1fr;gap:4px 14px;padding:8px 10px;border-radius:10px;background:var(--bg);align-items:baseline}
+.word .w{font-family:var(--jp);font-size:19px;font-weight:500}
+.word .w a{color:inherit;text-decoration:none;border-bottom:2px solid var(--accent-soft);cursor:pointer}
+.word .w a.cur{color:var(--accent);border-bottom-color:transparent}
+.word .r{font-family:var(--jp);font-size:13px;color:var(--muted)}
+.word .mm{font-size:14px}
+.word .sub{grid-column:2}
+.combos{display:flex;flex-wrap:wrap;gap:6px}
+.combo{border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--paper);cursor:pointer;font-size:13px;color:var(--ink)}
+.combo .ck{font-family:var(--jp-serif);font-size:18px;margin-right:4px}
+.mfoot{display:flex;justify-content:space-between;gap:8px;padding:0 22px 20px}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:10px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+/* flashcards */
+.fcwrap{max-width:520px;margin:10px auto}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.seg button{border:0;background:none;color:var(--ink);font:inherit;font-size:13px;font-weight:600;padding:8px 12px;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.card{perspective:1200px;height:320px;margin:16px 0;cursor:pointer}
+.card .inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.card.flip .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.face.back{transform:rotateY(180deg)}
+.face .fk{font-family:var(--jp-serif);font-size:120px;line-height:1.1}
+.face .fw{font-family:var(--jp);font-size:54px;font-weight:500;line-height:1.2}
+.face .hint{position:absolute;bottom:12px;font-size:12px;color:var(--muted)}
+.face .hv{font-size:26px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.face .mean{font-size:19px;margin:6px 0 10px}
+.face .reading{font-family:var(--jp);font-size:26px;color:var(--accent)}
+.face .ex{font-size:13px;color:var(--muted);margin-top:10px;font-family:var(--jp)}
+.progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.fcbar{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin:8px 0}
+.fcbtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.kbd{font-size:11px;color:var(--muted);text-align:center;margin-top:10px}
+.done{text-align:center;padding:40px 10px}
+.done .big{font-size:42px;font-weight:700;color:var(--accent)}
+/* quiz */
+.qwrap{max-width:600px;margin:10px auto}
+.qcard{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:24px;margin-top:14px}
+.qtype{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.qprompt{text-align:center;margin:18px 0 22px}
+.qprompt .pk{font-family:var(--jp-serif);font-size:88px;line-height:1.1}
+.qprompt .pw{font-family:var(--jp);font-size:44px;font-weight:500}
+.qprompt .pt{font-size:22px;font-weight:600}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:14px 12px;font:inherit;font-size:16px;cursor:pointer;text-align:center;min-height:56px}
+.opt.jpo{font-family:var(--jp);font-size:20px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.qinfo{margin-top:14px;font-size:14px;color:var(--muted);min-height:22px;text-align:center}
+.qnext{display:flex;justify-content:flex-end;margin-top:12px}
+.setup{display:flex;flex-direction:column;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:14px}
+.setup label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.setup .row{display:flex;flex-wrap:wrap;gap:14px}
+.setup h4{margin:0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.review{margin-top:16px;display:flex;flex-direction:column;gap:6px;text-align:left}
+.review div{background:var(--bg);border-radius:10px;padding:8px 12px;font-size:14px}
+.review .jp{font-size:17px}
+/* table */
+table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--bg);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+td.k{font-family:var(--jp-serif);font-size:30px;text-align:center;width:60px;cursor:pointer}
+td.hv{font-weight:700;color:var(--accent);white-space:nowrap}
+td .jp{font-size:14px}
+td .wl{font-family:var(--jp);font-size:14px}
+td .wl span{display:inline-block;margin:0 10px 3px 0}
+td .wl small{color:var(--muted);font-family:"Be Vietnam Pro",sans-serif}
+.tablewrap{overflow-x:auto}
+.empty{text-align:center;color:var(--muted);padding:40px}
+@media (max-width:600px){
+  .mhead{flex-direction:column;text-align:center}
+  .rd{justify-content:center}
+  .face .fk{font-size:96px}.face .fw{font-size:40px}
+  .opts{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+  .tile .k{font-size:38px}
+  td.ex,th.ex{display:none}
+  input[type=search]{min-width:100%}
+}
+@media print{header,.lessons,.toolbar{display:none}section{display:none!important}#tab-table{display:block!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="logo"><div class="stamp">漢</div><div>Ôn tập Kanji <span style="color:var(--muted);font-weight:500;font-size:13px">· Bài 4–11</span></div></div>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="themeBtn" title="Đổi giao diện sáng/tối">☾</button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="browse" class="on">Tra cứu</button>
+      <button data-tab="flash">Flashcard</button>
+      <button data-tab="quiz">Trắc nghiệm</button>
+      <button data-tab="table">Bảng tổng hợp</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="lessons" id="lessons"></div>
+  <main>
+    <section id="tab-browse" class="on">
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="Tìm chữ Hán, Hán Việt, nghĩa, cách đọc… (vd: 大, đại, だい, to lớn)">
+        <span class="count" id="count"></span>
+      </div>
+      <div id="browseOut"></div>
+    </section>
+
+    <section id="tab-flash">
+      <div class="fcwrap">
+        <div class="toolbar" style="justify-content:space-between">
+          <div class="seg" id="fcDeck">
+            <button data-v="kanji" class="on">Chữ Hán</button>
+            <button data-v="word">Từ vựng</button>
+          </div>
+          <div class="seg" id="fcFilter">
+            <button data-v="all" class="on">Tất cả</button>
+            <button data-v="unknown">Chưa thuộc</button>
+          </div>
+        </div>
+        <div id="fcArea"></div>
+      </div>
+    </section>
+
+    <section id="tab-quiz">
+      <div class="qwrap" id="quizArea"></div>
+    </section>
+
+    <section id="tab-table">
+      <div class="toolbar">
+        <span class="count">Bảng tổng hợp theo bài — bấm vào chữ Hán để xem chi tiết. Có thể in (Ctrl+P).</span>
+      </div>
+      <div id="tableOut"></div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+
+<script id="data" type="text/plain">
+K|4|東|ĐÔNG|Hướng đông, phía đông|トウ|ひがし
+K|4|京|KINH|Kinh đô, kinh thành|キョウ|
+K|4|名|DANH|Tên, nổi tiếng, danh dự|メイ|な
+K|4|前|TIỀN|Trước, phía trước|ゼン|まえ
+K|4|国|QUỐC|Đất nước|コク|くに
+K|4|男|NAM|Đàn ông, con trai|ダン|おとこ
+K|4|女|NỮ|Phụ nữ, con gái|ジョ|おんな
+K|4|区|KHU|Vùng, quận|ク|
+K|4|市|THỊ|Chợ, thành phố|シ|
+W|4|東|ひがし|Phía đông
+W|4|東京|とうきょう|Tokyo
+W|4|名前|なまえ|Tên
+W|4|前日|ぜんじつ|Ngày hôm trước
+W|4|午前|ごぜん|Buổi sáng (AM)
+W|4|外国|がいこく|Nước ngoài
+W|4|男の人|おとこのひと|Người đàn ông
+W|4|女の人|おんなのひと|Người phụ nữ
+W|4|男女|だんじょ|Nam nữ
+W|4|～区|～く|Quận ~
+W|4|～市|～し|Thành phố ~
+K|5|先|TIÊN|Trước|セン|さき
+K|5|週|CHU|Tuần|シュウ|
+K|5|毎|MỖI|Mỗi, các|マイ|
+K|5|午|NGỌ|Buổi trưa|ゴ|
+K|5|後|HẬU|Sau, phía sau|ゴ|うし・ろ、あと
+K|5|見|KIẾN|Nhìn, xem, ngắm|ケン|み・ます、み・えます、み・せます
+K|5|食|THỰC|Ăn|ショク|た・べます
+K|5|飲|ẨM|Uống|イン|の・みます
+K|5|買|MÃI|Mua|バイ|か・います
+K|5|物|VẬT|Đồ vật, động vật|ブツ、モツ|もの
+K|5|行|HÀNH|Đi|コウ|い・きます
+K|5|休|HƯU|Nghỉ ngơi|キュウ|やす・み、やす・みます
+W|5|先生|せんせい|Giáo viên
+W|5|先月|せんげつ|Tháng trước
+W|5|先日|せんじつ|Hôm trước, mấy hôm trước
+W|5|先週|せんしゅう|Tuần trước
+W|5|一週間|いっしゅうかん|Một tuần
+W|5|毎日|まいにち|Mỗi ngày
+W|5|毎週|まいしゅう|Mỗi tuần
+W|5|毎月|まいつき|Mỗi tháng
+W|5|毎年|まいとし|Mỗi năm
+W|5|午後|ごご|Buổi chiều (PM)
+W|5|前後|ぜんご|Trước sau; khoảng chừng
+W|5|後ろ|うしろ|Phía sau
+W|5|見学|けんがく|Tham quan học tập
+W|5|見物|けんぶつ|Ngắm cảnh, tham quan
+W|5|食事|しょくじ|Bữa ăn
+W|5|飲食|いんしょく|Ăn uống
+W|5|飲み水|のみみず|Nước uống
+W|5|買い物|かいもの|Mua sắm
+W|5|食べ物|たべもの|Đồ ăn
+W|5|飲み物|のみもの|Đồ uống
+W|5|人物|じんぶつ|Nhân vật
+W|5|休日|きゅうじつ|Ngày nghỉ
+W|5|休みの日|やすみのひ|Ngày nghỉ
+K|6|今|KIM|Bây giờ, hiện tại|コン|いま
+K|6|来|LAI|Đến, tương lai|ライ|き・ます
+K|6|帰|QUY|Trở về|キ|かえ・ります
+K|6|会|HỘI|Gặp gỡ, hội, xã hội|カイ|あ・います
+K|6|社|XÃ|Công ty, đền thần đạo|シャ|
+K|6|聞|VĂN|Nghe|ブン|き・きます
+K|6|読|ĐỘC|Đọc|ドク|よ・みます
+K|6|書|THƯ|Viết, sách|ショ|か・きます
+K|6|話|THOẠI|Nói chuyện, câu chuyện|ワ|はなし、はな・します
+K|6|言|NGÔN|Nói|ゲン、ゴン|い・います
+K|6|貝|BỐI|Con sò||かい
+K|6|田|ĐIỀN|Ruộng|デン|た
+K|6|力|LỰC|Sức lực|リョク、リキ|ちから
+K|6|門|MÔN|Cánh cổng|モン|
+K|6|寺|TỰ|Chùa|ジ|てら
+W|6|今週|こんしゅう|Tuần này
+W|6|今月|こんげつ|Tháng này
+W|6|今日|きょう|Hôm nay
+W|6|今年|ことし|Năm nay
+W|6|来週|らいしゅう|Tuần sau
+W|6|来月|らいげつ|Tháng sau
+W|6|来年|らいねん|Năm sau
+W|6|来日|らいにち|Đến Nhật Bản
+W|6|日帰り|ひがえり|Đi về trong ngày
+W|6|帰国|きこく|Về nước
+W|6|飲み会|のみかい|Buổi nhậu, tiệc
+W|6|国会|こっかい|Quốc hội
+W|6|会見|かいけん|Họp báo, hội kiến
+W|6|会社|かいしゃ|Công ty
+W|6|社会|しゃかい|Xã hội
+W|6|新聞|しんぶん|Báo
+W|6|読み物|よみもの|Sách báo để đọc
+W|6|読書|どくしょ|Đọc sách
+W|6|辞書|じしょ|Từ điển
+W|6|書き物|かきもの|Bài viết, việc viết lách
+W|6|会話|かいわ|Hội thoại
+W|6|電話|でんわ|Điện thoại
+W|6|言葉|ことば|Từ ngữ, lời nói
+W|6|言語|げんご|Ngôn ngữ
+W|6|田んぼ|たんぼ|Ruộng lúa
+W|6|水田|すいでん|Ruộng nước
+W|6|水力|すいりょく|Thủy lực, sức nước
+W|6|火力|かりょく|Hỏa lực, nhiệt lượng
+W|6|大学の門|だいがくのもん|Cổng trường đại học
+W|6|学校の門|がっこうのもん|Cổng trường học
+K|7|肉|NHỤC|Thịt|ニク|
+K|7|料|LIỆU|Tài liệu, vật liệu, chi phí|リョウ|
+K|7|理|LÝ|Lý luận, nguyên lý, lý do|リ|
+K|7|野|DÃ|Đồng bằng, hoang dã|ヤ|の
+K|7|半|BÁN|Nửa, nửa chừng|ハン|なか・ば
+K|7|大|ĐẠI|To lớn|ダイ、タイ|おお・きい
+K|7|小|TIỂU|Nhỏ, bé|ショウ|ちい・さい
+W|7|牛肉|ぎゅうにく|Thịt bò
+W|7|豚肉|ぶたにく|Thịt lợn
+W|7|鶏肉|とりにく|Thịt gà
+W|7|料金|りょうきん|Phí, tiền cước
+W|7|料理|りょうり|Món ăn; nấu ăn
+W|7|野菜|やさい|Rau
+W|7|長野|ながの|Nagano (địa danh)
+W|7|一時半|いちじはん|1 giờ rưỡi
+W|7|半分|はんぶん|Một nửa
+W|7|半日|はんにち|Nửa ngày
+W|7|半月|はんつき|Nửa tháng
+W|7|半年|はんとし|Nửa năm
+W|7|大学|だいがく|Đại học
+W|7|大人|おとな|Người lớn
+W|7|大学生|だいがくせい|Sinh viên
+W|7|大会|たいかい|Đại hội
+W|7|大半|たいはん|Phần lớn
+W|7|小学校|しょうがっこう|Trường tiểu học
+W|7|小学生|しょうがくせい|Học sinh tiểu học
+W|7|小人|こびと|Người tí hon
+K|8|家|GIA|Nhà, gia đình|カ|うち、いえ
+K|8|族|TỘC|Gia tộc, dòng họ|ゾク|
+K|8|父|PHỤ|Bố, cha|フ|ちち
+K|8|母|MẪU|Mẹ|ボ|はは
+K|8|兄|HUYNH|Anh trai|キョウ|あに
+K|8|弟|ĐỆ|Em trai|ダイ、テイ|おとうと
+K|8|姉|TỈ|Chị gái|シ|あね
+K|8|妹|MUỘI|Em gái|マイ|いもうと
+K|8|犬|KHUYỂN|Con chó|ケン|いぬ
+K|8|高|CAO|Cao, đắt|コウ|たか・い
+K|8|短|ĐOẢN|Ngắn|タン|みじか・い
+K|8|長|TRƯỜNG, TRƯỞNG|Dài; người đứng đầu|チョウ|なが・い
+W|8|家|うち|Nhà
+W|8|大家|おおや|Chủ trọ, chủ nhà
+W|8|家族|かぞく|Gia đình
+W|8|父|ちち|Bố (của mình)
+W|8|お父さん|おとうさん|Bố (người khác / gọi bố)
+W|8|母|はは|Mẹ (của mình)
+W|8|お母さん|おかあさん|Mẹ (người khác / gọi mẹ)
+W|8|父母|ふぼ|Cha mẹ
+W|8|母国|ぼこく|Tổ quốc, quê hương
+W|8|母国語|ぼこくご|Tiếng mẹ đẻ
+W|8|兄|あに|Anh trai (của mình)
+W|8|お兄さん|おにいさん|Anh trai (người khác)
+W|8|弟|おとうと|Em trai (của mình)
+W|8|弟さん|おとうとさん|Em trai (người khác)
+W|8|兄弟|きょうだい|Anh chị em
+W|8|姉|あね|Chị gái (của mình)
+W|8|お姉さん|おねえさん|Chị gái (người khác)
+W|8|妹|いもうと|Em gái (của mình)
+W|8|妹さん|いもうとさん|Em gái (người khác)
+W|8|姉妹|しまい|Chị em gái
+W|8|犬|いぬ|Con chó
+W|8|高い|たかい|Cao; đắt
+W|8|高校|こうこう|Trường THPT
+W|8|高校生|こうこうせい|Học sinh THPT
+W|8|短い|みじかい|Ngắn
+W|8|短大|たんだい|Cao đẳng
+W|8|長い|ながい|Dài
+W|8|族長|ぞくちょう|Tộc trưởng
+W|8|社長|しゃちょう|Giám đốc
+W|8|学長|がくちょう|Hiệu trưởng (đại học)
+W|8|校長|こうちょう|Hiệu trưởng (trường phổ thông)
+K|9|好|HẢO|Thích, tốt|コウ|す・き
+K|9|歌|CA|Bài hát, hát|カ|うた、うた・う
+K|9|音|ÂM|Âm thanh|オン|おと
+K|9|楽|NHẠC, LẠC|Âm nhạc; vui vẻ|ガク、ラク|たの・しい
+K|9|車|XA|Xe|シャ|くるま
+K|9|映|ẢNH, ÁNH|Chiếu, phản chiếu|エイ|
+K|9|画|HỌA, HOẠCH|Tranh vẽ; kế hoạch|ガ、カク|
+K|9|旅|LỮ|Chuyến đi, du lịch|リョ|たび
+K|9|海|HẢI|Biển|カイ|うみ
+K|9|外|NGOẠI|Bên ngoài|ガイ|そと
+W|9|好き|すき|Thích
+W|9|大好き|だいすき|Rất thích
+W|9|大好物|だいこうぶつ|Món khoái khẩu
+W|9|歌|うた|Bài hát
+W|9|歌う|うたう|Hát
+W|9|国歌|こっか|Quốc ca
+W|9|短歌|たんか|Thơ ngắn (Tanka)
+W|9|音|おと|Âm thanh
+W|9|音読み|おんよみ|Âm On
+W|9|楽しい|たのしい|Vui vẻ
+W|9|音楽|おんがく|Âm nhạc
+W|9|車|くるま|Xe ô tô
+W|9|映画|えいが|Phim
+W|9|計画|けいかく|Kế hoạch
+W|9|旅|たび|Chuyến đi
+W|9|旅行|りょこう|Du lịch
+W|9|海|うみ|Biển
+W|9|海水|かいすい|Nước biển
+W|9|家の外|いえのそと|Bên ngoài nhà
+W|9|外国語|がいこくご|Ngoại ngữ
+W|9|外国人|がいこくじん|Người nước ngoài
+W|9|社外|しゃがい|Ngoài công ty
+W|9|海外|かいがい|Nước ngoài, hải ngoại
+K|10|駅|DỊCH|Nhà ga|エキ|
+K|10|上|THƯỢNG|Trên|ジョウ|うえ
+K|10|下|HẠ|Dưới|カ、ゲ|した
+K|10|地|ĐỊA|Đất|チ|
+K|10|図|ĐỒ|Hình vẽ, bản đồ|ト、ズ|
+K|10|館|QUÁN|Tòa nhà, quán|カン|
+K|10|右|HỮU|Bên phải|ユウ|みぎ
+K|10|左|TẢ|Bên trái|サ|ひだり
+K|10|道|ĐẠO|Con đường, đạo|ドウ|みち
+W|10|駅|えき|Nhà ga
+W|10|駅長|えきちょう|Trưởng ga
+W|10|上|うえ|Trên
+W|10|上京|じょうきょう|Lên Tokyo
+W|10|下|した|Dưới
+W|10|下車|げしゃ|Xuống xe
+W|10|上下|じょうげ|Trên dưới
+W|10|土地|とち|Đất đai
+W|10|地下|ちか|Dưới lòng đất, ngầm
+W|10|地図|ちず|Bản đồ
+W|10|図|ず|Hình vẽ
+W|10|図書館|としょかん|Thư viện
+W|10|旅館|りょかん|Nhà trọ kiểu Nhật
+W|10|会館|かいかん|Hội quán
+W|10|映画館|えいがかん|Rạp chiếu phim
+W|10|右|みぎ|Bên phải
+W|10|左|ひだり|Bên trái
+W|10|左右|さゆう|Trái phải
+W|10|道|みち|Con đường
+W|10|書道|しょどう|Thư pháp
+W|10|国道|こくどう|Quốc lộ
+W|10|車道|しゃどう|Đường xe chạy
+K|11|起|KHỞI|Thức dậy, khởi đầu|キ|お・きる、お・こす
+K|11|歩|BỘ|Đi bộ|ホ|ある・く
+K|11|乗|THỪA|Lên (xe…), cưỡi|ジョウ|の・る、の・せる
+K|11|始|THỦY|Bắt đầu|シ|はじ・める、はじ・まる
+K|11|終|CHUNG|Kết thúc|シュウ|お・わる、お・える
+K|11|勉|MIỄN|Cố gắng, chăm chỉ|ベン|
+K|11|強|CƯỜNG, CƯỠNG|Mạnh|キョウ|つよ・い
+K|11|朝|TRIỀU|Buổi sáng|チョウ|あさ
+K|11|昼|TRÚ|Buổi trưa, ban ngày|チュウ|ひる
+K|11|夜|DẠ|Ban đêm|ヤ|よる
+W|11|起きる|おきる|Thức dậy
+W|11|起こす|おこす|Đánh thức; gây ra
+W|11|歩く|あるく|Đi bộ
+W|11|歩行|ほこう|Bộ hành, đi bộ
+W|11|一歩|いっぽ|Một bước
+W|11|乗る|のる|Lên (tàu, xe…)
+W|11|乗せる|のせる|Cho lên xe, chở; chất lên
+W|11|乗車|じょうしゃ|Lên xe
+W|11|始める|はじめる|Bắt đầu (tha động từ)
+W|11|始まる|はじまる|Bắt đầu (tự động từ)
+W|11|終わる|おわる|Kết thúc (tự động từ)
+W|11|終える|おえる|Kết thúc (tha động từ)
+W|11|始終|しじゅう|Từ đầu đến cuối; luôn luôn
+W|11|勉強|べんきょう|Học tập
+W|11|勉学|べんがく|Việc học hành
+W|11|強い|つよい|Mạnh
+W|11|朝|あさ|Buổi sáng
+W|11|朝食|ちょうしょく|Bữa sáng
+W|11|今朝|けさ|Sáng nay
+W|11|毎朝|まいあさ|Mỗi sáng
+W|11|昼|ひる|Buổi trưa
+W|11|昼食|ちゅうしょく|Bữa trưa
+W|11|昼間|ひるま|Ban ngày
+W|11|夜|よる|Ban đêm
+W|11|夜道|よみち|Đường ban đêm
+W|11|夜会|やかい|Dạ hội
+W|11|夜間|やかん|Ban đêm, buổi tối
+</script>
+<script>
+(function(){
+// ---------- storage (an toàn) ----------
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+// ---------- parse data ----------
+const K=[],W=[];
+document.getElementById('data').textContent.trim().split('\n').forEach(line=>{
+  const p=line.trim().split('|');
+  if(p[0]==='K')K.push({l:+p[1],k:p[2],hv:p[3],m:p[4],on:p[5]||'',kun:p[6]||''});
+  else if(p[0]==='W')W.push({l:+p[1],w:p[2],r:p[3],m:p[4]});
+});
+const byK=Object.fromEntries(K.map(x=>[x.k,x]));
+// từ ghép của mỗi chữ = mọi từ có chứa chữ đó (xuyên suốt các bài)
+K.forEach(x=>{x.words=W.filter(w=>w.w.includes(x.k));});
+W.forEach(w=>{w.ks=[...w.w].filter(c=>byK[c]);});
+// chữ kết hợp: các chữ Hán khác cùng xuất hiện trong từ ghép
+K.forEach(x=>{const s=new Set();x.words.forEach(w=>w.ks.forEach(c=>{if(c!==x.k)s.add(c)}));x.combos=[...s];});
+const LESSONS=[...new Set(K.map(x=>x.l))].sort((a,b)=>a-b);
+
+// ---------- state ----------
+let sel=new Set(store.get('kj_lessons',LESSONS));
+sel=new Set([...sel].filter(l=>LESSONS.includes(l)));if(!sel.size)sel=new Set(LESSONS);
+let known=new Set(store.get('kj_known',[]));
+const saveKnown=()=>store.set('kj_known',[...known]);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=id=>document.getElementById(id);
+const selK=()=>K.filter(x=>sel.has(x.l));
+const selW=()=>W.filter(x=>sel.has(x.l));
+
+// ---------- theme ----------
+const root=document.documentElement;const th=store.get('kj_theme',null);if(th)root.dataset.theme=th;
+$('themeBtn').onclick=()=>{const dark=root.dataset.theme?root.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;root.dataset.theme=dark?'light':'dark';store.set('kj_theme',root.dataset.theme)};
+
+// ---------- tabs ----------
+let tab='browse';
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id==='tab-'+tab));
+  if(tab==='flash')startFlash();if(tab==='quiz')quizSetup();};
+
+// ---------- lesson chips ----------
+function renderLessons(){
+  $('lessons').innerHTML='<span class="lbl">Bài:</span>'+LESSONS.map(l=>`<button class="chip ${sel.has(l)?'on':''}" data-l="${l}">Bài ${l}</button>`).join('')+
+  `<button class="chip ghost" data-l="all">Chọn tất cả</button><button class="chip ghost" data-l="none">Bỏ chọn</button>`;
+}
+$('lessons').onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=b.dataset.l;
+  if(v==='all')sel=new Set(LESSONS);else if(v==='none')sel=new Set();else{const n=+v;sel.has(n)?sel.delete(n):sel.add(n)}
+  store.set('kj_lessons',[...sel]);renderLessons();renderAll();};
+
+function renderAll(){renderBrowse();renderTable();if(tab==='flash')startFlash();if(tab==='quiz')quizSetup();}
+
+// ---------- browse ----------
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d');
+const kata2hira=s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+function matches(x,q){
+  if(!q)return true;const nq=norm(q),hq=kata2hira(q);
+  const hay=[x.k,x.hv,x.m,x.on,x.kun,kata2hira(x.on),x.kun.replace(/・/g,'')];
+  if(hay.some(h=>norm(h).includes(nq)||h.includes(hq)))return true;
+  return x.words.some(w=>w.w.includes(q)||w.r.includes(hq)||norm(w.m).includes(nq));
+}
+function tileHTML(x){return `<div class="tile ${known.has(x.k)?'known':''}" data-k="${x.k}"><div class="ls">B${x.l}</div><div class="k">${x.k}</div><div class="hv">${esc(x.hv)}</div><div class="m">${esc(x.m)}</div></div>`}
+function renderBrowse(){
+  const q=$('q').value.trim();const list=selK().filter(x=>matches(x,q));
+  $('count').textContent=`${list.length} chữ · ${selW().length} từ vựng`;
+  if(!list.length){$('browseOut').innerHTML='<div class="empty">Không tìm thấy. Thử chọn thêm bài hoặc đổi từ khoá.</div>';return}
+  let h='';LESSONS.forEach(l=>{const g=list.filter(x=>x.l===l);if(!g.length)return;
+    h+=`<h2 class="lesson">Bài ${l} · ${g.length} chữ</h2><div class="grid">${g.map(tileHTML).join('')}</div>`});
+  $('browseOut').innerHTML=h;
+}
+$('q').oninput=renderBrowse;
+$('browseOut').onclick=e=>{const t=e.target.closest('.tile');if(t)openK(t.dataset.k)};
+
+// ---------- detail modal ----------
+function linkWord(w,cur){return [...w].map(c=>byK[c]?`<a class="${c===cur?'cur':''}" data-k="${c}">${c}</a>`:esc(c)).join('')}
+function openK(k){
+  const x=byK[k];if(!x)return;
+  const ws=x.words.length?x.words.map(w=>`<div class="word"><div class="w">${linkWord(w.w,k)}</div><div class="mm">${esc(w.m)} <span class="r">· Bài ${w.l}</span></div><div class="r">${esc(w.r)}</div></div>`).join(''):'<div class="r">Chưa có từ ghép trong bài.</div>';
+  const cb=x.combos.length?`<h3>Kết hợp với các chữ đã học</h3><div class="combos">${x.combos.map(c=>`<button class="combo" data-k="${c}"><span class="ck">${c}</span>${esc(byK[c].hv)}</button>`).join('')}</div>`:'';
+  const isK=known.has(k);
+  $('modal').innerHTML=`<div class="mhead"><div class="big">${x.k}</div><div><div class="hv">${esc(x.hv)}</div><div class="mean">${esc(x.m)}</div>
+  <div class="rd"><b>On</b><span>${esc(x.on)||'—'}</span><b>Kun</b><span>${esc(x.kun)||'—'}</span><b>Bài</b><span>${x.l}</span></div></div></div>
+  <div class="mbody"><h3>Từ ghép &amp; cách dùng (${x.words.length})</h3><div class="words">${ws}</div>${cb}</div>
+  <div class="mfoot"><button class="btn ${isK?'ok':''}" id="mKnown">${isK?'✓ Đã thuộc':'Đánh dấu đã thuộc'}</button><button class="btn pri" id="mClose">Đóng</button></div>`;
+  $('overlay').classList.add('on');$('modal').scrollTop=0;
+  $('mClose').onclick=closeM;
+  $('mKnown').onclick=()=>{known.has(k)?known.delete(k):known.add(k);saveKnown();renderBrowse();openK(k)};
+}
+function closeM(){$('overlay').classList.remove('on')}
+$('overlay').onclick=e=>{if(e.target===$('overlay'))closeM();const a=e.target.closest('[data-k]');if(a&&$('modal').contains(a))openK(a.dataset.k)};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});
+
+// ---------- table ----------
+function renderTable(){
+  const list=selK();if(!list.length){$('tableOut').innerHTML='<div class="empty">Chưa chọn bài nào.</div>';return}
+  let h='';LESSONS.forEach(l=>{const g=list.filter(x=>x.l===l);if(!g.length)return;
+    h+=`<h2 class="lesson">Bài ${l}</h2><div class="tablewrap"><table><thead><tr><th>Chữ</th><th>Hán Việt</th><th>Nghĩa</th><th>On / Kun</th><th class="ex">Từ ghép</th></tr></thead><tbody>`+
+    g.map(x=>`<tr><td class="k" data-k="${x.k}">${x.k}</td><td class="hv">${esc(x.hv)}</td><td>${esc(x.m)}</td><td class="jp">${esc(x.on)||'—'}<br>${esc(x.kun)||'—'}</td><td class="ex"><div class="wl">${x.words.map(w=>`<span>${esc(w.w)} <small>(${esc(w.r)}) ${esc(w.m)}</small></span>`).join('')}</div></td></tr>`).join('')+
+    '</tbody></table></div>'});
+  $('tableOut').innerHTML=h;
+}
+$('tableOut').onclick=e=>{const t=e.target.closest('[data-k]');if(t)openK(t.dataset.k)};
+
+// ---------- flashcards ----------
+let fc={deck:'kanji',filter:'all',queue:[],i:0,total:0,good:0,flipped:false};
+function segInit(id,key){$(id).onclick=e=>{const b=e.target.closest('button');if(!b)return;fc[key]=b.dataset.v;$(id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));startFlash()}}
+segInit('fcDeck','deck');segInit('fcFilter','filter');
+const fcKey=it=>fc.deck==='kanji'?it.k:'w:'+it.w;
+function startFlash(){
+  let items=fc.deck==='kanji'?selK():selW();
+  if(fc.filter==='unknown')items=items.filter(it=>!known.has(fcKey(it)));
+  fc.queue=shuffle(items);fc.i=0;fc.total=items.length;fc.good=0;fc.flipped=false;drawFlash();
+}
+function drawFlash(){
+  const A=$('fcArea');
+  if(!fc.total){A.innerHTML=`<div class="done"><p>${fc.filter==='unknown'?'Bạn đã thuộc hết thẻ trong các bài đã chọn 🎉':'Chưa chọn bài nào.'}</p>${fc.filter==='unknown'?'<button class="btn" id="fcReset">Xoá đánh dấu đã thuộc</button>':''}</div>`;
+    const r=$('fcReset');if(r)r.onclick=()=>{fc.queue.length=0;[...known].forEach(k=>{if(fc.deck==='kanji'?!k.startsWith('w:'):k.startsWith('w:'))known.delete(k)});saveKnown();renderBrowse();startFlash()};return}
+  if(fc.i>=fc.queue.length){A.innerHTML=`<div class="done"><div class="big">${fc.good}/${fc.total}</div><p>thẻ nhớ ngay lần đầu</p><button class="btn pri" id="fcAgain">Ôn lại</button></div>`;$('fcAgain').onclick=startFlash;return}
+  const it=fc.queue[fc.i];let front,back;
+  if(fc.deck==='kanji'){
+    front=`<div class="fk">${it.k}</div>`;
+    back=`<div class="hv">${esc(it.hv)}</div><div class="mean">${esc(it.m)}</div><div class="jp" style="font-size:15px">On: ${esc(it.on)||'—'} · Kun: ${esc(it.kun)||'—'}</div><div class="ex">${it.words.slice(0,4).map(w=>`${esc(w.w)}（${esc(w.r)}）`).join('　')}</div>`;
+  }else{
+    front=`<div class="fw">${esc(it.w)}</div>`;
+    back=`<div class="reading">${esc(it.r)}</div><div class="mean">${esc(it.m)}</div><div class="ex">${it.ks.map(c=>`${c} ${esc(byK[c].hv)}`).join(' + ')}</div>`;
+  }
+  const done=fc.i, pct=Math.round(done/fc.queue.length*100);
+  A.innerHTML=`<div class="fcbar"><span>Thẻ ${fc.i+1} / ${fc.queue.length}</span><span>Bài ${it.l}</span></div><div class="progress"><i style="width:${pct}%"></i></div>
+  <div class="card" id="card"><div class="inner"><div class="face">${front}<div class="hint">Bấm để lật</div></div><div class="face back">${back}</div></div></div>
+  <div class="fcbtns"><button class="btn" id="fcNo">✗ Chưa nhớ</button><button class="btn" id="fcFlip">Lật thẻ</button><button class="btn ok" id="fcYes">✓ Đã nhớ</button></div>
+  <div class="kbd">Phím tắt: Space = lật · ← chưa nhớ · → đã nhớ</div>`;
+  $('card').onclick=flip;$('fcFlip').onclick=flip;$('fcNo').onclick=()=>answer(false);$('fcYes').onclick=()=>answer(true);
+}
+function flip(){fc.flipped=!fc.flipped;const c=$('card');if(c)c.classList.toggle('flip',fc.flipped)}
+function answer(ok){const it=fc.queue[fc.i];if(!it)return;const key=fcKey(it);
+  if(ok){if(!it._miss)fc.good++;known.add(key)}else{known.delete(key);it._miss=true;fc.queue.push(it)}
+  saveKnown();fc.i++;fc.flipped=false;drawFlash();if(fc.deck==='kanji')renderBrowse();}
+document.addEventListener('keydown',e=>{if(tab!=='flash'||$('overlay').classList.contains('on')||e.target.tagName==='INPUT')return;
+  if(e.code==='Space'){e.preventDefault();flip()}else if(e.key==='ArrowLeft')answer(false);else if(e.key==='ArrowRight')answer(true)});
+
+// ---------- quiz ----------
+const QT={
+  hv:{name:'Chữ Hán → Hán Việt',src:'k'},
+  mean:{name:'Chữ Hán → Nghĩa',src:'k'},
+  read:{name:'Từ vựng → Cách đọc',src:'w'},
+  wmean:{name:'Nghĩa → Từ vựng',src:'w'},
+  rk:{name:'Cách đọc → Từ vựng',src:'w'}
+};
+let qz=store.get('kj_quiz',{types:['hv','mean','read','wmean'],n:20});
+let qs={list:[],i:0,score:0,wrong:[]};
+function quizSetup(){
+  qs={list:[],i:0,score:0,wrong:[]};
+  $('quizArea').innerHTML=`<div class="setup"><h4>Dạng câu hỏi</h4><div class="row">${Object.entries(QT).map(([k,v])=>`<label><input type="checkbox" value="${k}" ${qz.types.includes(k)?'checked':''}> ${v.name}</label>`).join('')}</div>
+  <h4>Số câu</h4><div class="row">${[10,20,30,50].map(n=>`<label><input type="radio" name="qn" value="${n}" ${qz.n===n?'checked':''}> ${n}</label>`).join('')}</div>
+  <div class="count">Đang chọn: ${[...sel].sort((a,b)=>a-b).map(l=>'Bài '+l).join(', ')||'chưa chọn bài nào'} · ${selK().length} chữ, ${selW().length} từ</div>
+  <div><button class="btn pri" id="qStart">Bắt đầu</button></div></div>`;
+  $('qStart').onclick=()=>{qz.types=[...document.querySelectorAll('#quizArea input[type=checkbox]:checked')].map(i=>i.value);
+    qz.n=+(document.querySelector('#quizArea input[name=qn]:checked')||{value:20}).value;store.set('kj_quiz',qz);
+    if(!qz.types.length||!selK().length){alertQ('Hãy chọn ít nhất một dạng câu hỏi và một bài.');return}
+    buildQuiz();drawQ();};
+}
+function alertQ(msg){const c=$('quizArea').querySelector('.count');c.textContent=msg;c.style.color='var(--bad)'}
+function pick(pool,correct,keyf,n=3){const seen=new Set([keyf(correct)]);const out=[];for(const p of shuffle(pool)){const k=keyf(p);if(!seen.has(k)){seen.add(k);out.push(p)}if(out.length>=n)break}return out}
+function buildQuiz(){
+  const ks=selK(),ws=selW(),allK=K,allW=W;const list=[];
+  for(let g=0;g<qz.n*4&&list.length<qz.n;g++){
+    const t=qz.types[Math.random()*qz.types.length|0];
+    if(QT[t].src==='k'){const x=ks[Math.random()*ks.length|0];
+      const f=t==='hv'?(o=>o.hv):(o=>o.m);const pool=ks.length>=4?ks:allK;
+      const opts=shuffle([x,...pick(pool,x,f)]);
+      list.push({t,prompt:`<div class="pk">${x.k}</div>`,opts:opts.map(f),ans:f(x),jp:false,info:`${x.k} — ${x.hv}: ${x.m}`,k:x.k});
+    }else{if(!ws.length)continue;const w=ws[Math.random()*ws.length|0];const pool=ws.length>=4?ws:allW;
+      let prompt,f,jp=true;
+      if(t==='read'){prompt=`<div class="pw">${esc(w.w)}</div>`;f=o=>o.r}
+      else if(t==='wmean'){prompt=`<div class="pt">${esc(w.m)}</div>`;f=o=>o.w}
+      else{prompt=`<div class="pw">${esc(w.r)}</div>`;f=o=>o.w}
+      const opts=shuffle([w,...pick(pool,w,f)]);
+      list.push({t,prompt,opts:opts.map(f),ans:f(w),jp,info:`${w.w}（${w.r}）— ${w.m}`,k:w.ks[0]});
+    }
+  }
+  qs.list=list;
+}
+function drawQ(){
+  const A=$('quizArea');
+  if(qs.i>=qs.list.length){const pct=Math.round(qs.score/qs.list.length*100);
+    A.innerHTML=`<div class="qcard done"><div class="big">${qs.score}/${qs.list.length}</div><p>${pct>=90?'Xuất sắc!':pct>=70?'Tốt lắm, cố thêm chút nữa!':'Ôn lại các câu sai bên dưới nhé.'}</p>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn pri" id="qAgain">Làm bài mới</button><button class="btn" id="qSet">Đổi cài đặt</button></div>
+    ${qs.wrong.length?`<div class="review"><h4 style="margin:12px 0 4px;color:var(--muted)">Câu sai (${qs.wrong.length})</h4>${qs.wrong.map(w=>`<div><span class="jp">${esc(w.info)}</span></div>`).join('')}</div>`:''}</div>`;
+    $('qAgain').onclick=()=>{qs={list:[],i:0,score:0,wrong:[]};buildQuiz();drawQ()};$('qSet').onclick=quizSetup;return}
+  const q=qs.list[qs.i];
+  A.innerHTML=`<div class="fcbar"><span>Câu ${qs.i+1} / ${qs.list.length}</span><span id="qScore">Đúng: ${qs.score}</span></div><div class="progress"><i style="width:${qs.i/qs.list.length*100}%"></i></div>
+  <div class="qcard"><div class="qtype">${QT[q.t].name}</div><div class="qprompt">${q.prompt}</div>
+  <div class="opts">${q.opts.map((o,i)=>`<button class="opt ${q.jp?'jpo':''}" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+  <div class="qinfo" id="qInfo">Phím 1–4 để chọn</div><div class="qnext"><button class="btn pri" id="qNext" style="visibility:hidden">Câu tiếp →</button></div></div>`;
+  A.querySelectorAll('.opt').forEach(b=>b.onclick=()=>choose(+b.dataset.i));
+  $('qNext').onclick=()=>{qs.i++;drawQ()};
+}
+function choose(i){const q=qs.list[qs.i];if(!q||q.done)return;q.done=true;
+  const bs=$('quizArea').querySelectorAll('.opt');const ok=q.opts[i]===q.ans;
+  bs.forEach((b,j)=>{b.disabled=true;if(q.opts[j]===q.ans)b.classList.add('right');else if(j===i)b.classList.add('wrong')});
+  if(ok)qs.score++;else qs.wrong.push(q);$('qScore').textContent='Đúng: '+qs.score;
+  $('qInfo').innerHTML=(ok?'<b style="color:var(--ok)">Chính xác!</b> ':'<b style="color:var(--bad)">Sai rồi.</b> ')+`<span class="jp">${esc(q.info)}</span>`;
+  $('qNext').style.visibility='visible';$('qNext').focus();}
+document.addEventListener('keydown',e=>{if(tab!=='quiz'||$('overlay').classList.contains('on'))return;const q=qs.list[qs.i];if(!q)return;
+  if(!q.done&&/^[1-4]$/.test(e.key))choose(+e.key-1);else if(q.done&&e.key==='Enter'&&document.activeElement!==$('qNext')){qs.i++;drawQ()}});
+
+renderLessons();renderAll();
+})();
+</script>
+</body>
+</html>
